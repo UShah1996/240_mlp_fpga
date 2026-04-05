@@ -1,0 +1,22 @@
+memory_initialization_radix=16;
+memory_initialization_vector=
+  D6, 26, 2F, BE, AE, A5, FE, F5, B6, C8, F9, 28, EC, 2C, FD, F8,
+  12, C7, 21, 04, E6, 88, 37, CB, BA, CA, 95, 92, 2E, 0B, 03, 33,
+  34, D4, A5, 22, 1E, 12, EE, 4D, A3, 11, B6, D7, A7, BD, B9, 16,
+  91, 29, F6, C7, B8, 1F, BC, 1A, C3, 07, 2D, 09, D9, AE, 27, 16,
+  A7, AE, FD, 25, 29, 1D, C1, 2C, D5, 1C, 23, 0A, DD, 00, A3, 1E,
+  00, CA, 1B, 25, 22, 98, B8, E1, E7, A5, C6, C4, 2B, F3, 19, 22,
+  A1, BC, E9, 0B, 28, 23, C1, CA, BC, 1C, DE, 15, E7, CE, DE, C2,
+  12, AA, 1B, 2E, EC, 1D, C5, 17, 21, 0F, C8, 26, 21, C1, E0, 19,
+  22, B4, B7, D3, AE, B8, 15, D8, 24, 17, 22, DD, 2B, D3, CA, 19,
+  CE, D9, 94, 2F, 1D, 14, 25, 06, 88, 10, 1D, FF, CE, 10, 23, BE,
+  03, 19, EA, DE, 22, 19, 36, FB, 26, CE, EC, 0F, DF, 1B, 21, D7,
+  0D, 03, 1F, 20, FD, 1A, 0E, A3, 20, 08, EB, 24, DB, C6, 07, AB,
+  2B, 1A, CF, 1A, E0, D1, 19, 0C, 13, 81, D4, 24, 9C, 0D, 49, 16,
+  0F, 30, E0, 0A, 17, 9B, EF, 98, BB, 16, AF, C0, C9, 14, 24, F6,
+  E4, DB, 1E, 1E, 28, DD, 33, 33, C2, 1B, 28, 96, EB, BD, C1, CA,
+  8B, CC, 1F, E7, D6, F8, 0D, 1C, 1C, 19, 1F, AD, 23, 07, D8, F0,
+  FC, 05, 2D, 16, EC, 19, 24, AF, 0B, 08, B4, C5, 34, 1C, DB, 13,
+  0A, 26, E2, B6, 15, E8, 9B, 20, 14, AF, E6, 1B, DB, B4, B9, 22,
+  D1, D0, 03, BC, 9E, D9, DD, C0, 14, 18, 25, C2, 38, 34, 00, D0,
+  0E, C4, CA, B3, C8, 1C, EA, 14, 16, 12, 24, 22, 15, 17, 9F, CF;
