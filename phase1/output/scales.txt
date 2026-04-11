@@ -1,5 +1,0 @@
-# Scale factors for INT8 dequantization (read by PS/ARM)
-# Format: layer_name scale_value
-fc1 0.0076997797
-fc2 0.0060690162
-fc3 0.0052889730
