@@ -120,8 +120,10 @@ def mlp_infer_quantized(pixel_vec, Wq, Bq, scales):
 
 def write_coe_int8(path: str, arr: np.ndarray):
     """Xilinx .coe file for INT8 weights (2-digit hex, two's complement)."""
-    flat     = arr.flatten().astype(np.int8)
-    hex_vals = [f"{int(v) & 0xFF:02X}" for v in flat]
+    # Cast to uint8 first so two's-complement negatives (e.g. -1 → 0xFF)
+    # are represented correctly without triggering numpy int8 overflow.
+    flat     = arr.flatten().astype(np.uint8)
+    hex_vals = [f"{v:02X}" for v in flat]
     with open(path, "w") as f:
         f.write("memory_initialization_radix=16;\n")
         f.write("memory_initialization_vector=\n")
@@ -133,8 +135,10 @@ def write_coe_int8(path: str, arr: np.ndarray):
 
 def write_coe_int32(path: str, arr: np.ndarray):
     """Xilinx .coe file for INT32 biases (8-digit hex, two's complement)."""
-    flat     = arr.flatten().astype(np.int32)
-    hex_vals = [f"{int(v) & 0xFFFFFFFF:08X}" for v in flat]
+    # Cast to uint32 first so two's-complement negatives (e.g. -1 → 0xFFFFFFFF)
+    # don't cause overflow when Python formats them as unsigned hex.
+    flat     = arr.flatten().astype(np.uint32)
+    hex_vals = [f"{v:08X}" for v in flat]
     with open(path, "w") as f:
         f.write("memory_initialization_radix=16;\n")
         f.write("memory_initialization_vector=\n")
@@ -326,6 +330,56 @@ if __name__ == "__main__":
         np.save(os.path.join(OUTPUT_DIR, f"{tag}.npy"), arr)
     print(f"  Wrote .npy debug arrays\n")
 
+    # ── STEP 5: Export Binary Files ───────────────────────────
+    print("=" * 60)
+    print("STEP 5: Exporting Raw Binary Files")
+    print("=" * 60)
+    print("  Format:")
+    print("    Weights → raw INT8  bytes, row-major (1 byte per weight)")
+    print("    Biases  → raw INT32 bytes, little-endian (4 bytes per bias)\n")
+
+    bin_weight_map = {
+        "W1.bin": Wq["fc1"],   # shape (64, 784)  → 50,176 bytes
+        "W2.bin": Wq["fc2"],   # shape (32,  64)  →  2,048 bytes
+        "W3.bin": Wq["fc3"],   # shape (10,  32)  →    320 bytes
+    }
+    for fname, arr in bin_weight_map.items():
+        path = os.path.join(OUTPUT_DIR, fname)
+        # view as uint8 so tobytes() writes correct two's-complement
+        # bit patterns (e.g. -1 → 0xFF) without overflow errors
+        arr.astype(np.int8).view(np.uint8).flatten().tofile(path)
+        size_b = os.path.getsize(path)
+        print(f"  Wrote {fname:<8}  ({arr.size} INT8  values, {size_b} bytes)")
+
+    bin_bias_map = {
+        "b1.bin": Bq["fc1"],   # 64  values → 256 bytes
+        "b2.bin": Bq["fc2"],   # 32  values → 128 bytes
+        "b3.bin": Bq["fc3"],   # 10  values →  40 bytes
+    }
+    for fname, arr in bin_bias_map.items():
+        path = os.path.join(OUTPUT_DIR, fname)
+        # '<i4' = little-endian INT32, consistent across all platforms
+        arr.astype('<i4').tofile(path)
+        size_b = os.path.getsize(path)
+        print(f"  Wrote {fname:<8}  ({arr.size} INT32 values, {size_b} bytes)")
+
+    print()
+    print("  Binary file layout (for C code on PS/ARM):")
+    print("    W1.bin : 50176 bytes  — read as int8_t  W1[64][784]")
+    print("    W2.bin :  2048 bytes  — read as int8_t  W2[32][64]")
+    print("    W3.bin :   320 bytes  — read as int8_t  W3[10][32]")
+    print("    b1.bin :   256 bytes  — read as int32_t b1[64]")
+    print("    b2.bin :   128 bytes  — read as int32_t b2[32]")
+    print("    b3.bin :    40 bytes  — read as int32_t b3[10]")
+    print()
+    print("  Example C code to load on PS/ARM:")
+    print("    int8_t  W1[64][784];")
+    print("    FILE   *f = fopen(\"W1.bin\", \"rb\");")
+    print("    fread(W1, sizeof(int8_t), 64*784, f);")
+    print("    fclose(f);")
+    print()
+
+
     # ── Summary ───────────────────────────────────────────────
     print("=" * 60)
     print("PHASE 1 COMPLETE – Summary")
@@ -342,8 +396,10 @@ if __name__ == "__main__":
     print(f"  BRAM usage (est.)        : {math.ceil((total_w + total_b) / (36*1024/8))} × 36Kb blocks")
     print()
     print(f"  Output files in ./{OUTPUT_DIR}/")
-    print(f"    W1.coe, W2.coe, W3.coe   ← weight BRAMs (INT8)")
-    print(f"    b1.coe, b2.coe, b3.coe   ← bias BRAMs   (INT32)")
+    print(f"    W1.coe, W2.coe, W3.coe   ← weight BRAMs  (INT8,  Vivado init)")
+    print(f"    b1.coe, b2.coe, b3.coe   ← bias BRAMs    (INT32, Vivado init)")
+    print(f"    W1.bin, W2.bin, W3.bin   ← weight binary (INT8,  for PS/C code)")
+    print(f"    b1.bin, b2.bin, b3.bin   ← bias binary   (INT32, for PS/C code)")
     print(f"    scales.txt               ← scale factors (read by PS/ARM)")
     print(f"    mlp_fp32.pth             ← FP32 model checkpoint")
     print(f"    *.npy                    ← debug arrays")

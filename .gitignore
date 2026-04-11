@@ -3,4 +3,8 @@ echo "phase1_output/*.npy" >> .gitignore
 echo "phase1_output/mlp_fp32.pth" >> .gitignore
 echo "data/" >> .gitignore
 echo "__pycache__/" >> .gitignore
-echo "*.pyc" >> .gitignore
+echo "*.pyc" >> .gitignorephase1_output/*.npy
+phase1_output/mlp_fp32.pth
+.DS_Store
+data/
+venv/
